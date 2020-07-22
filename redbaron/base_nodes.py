@@ -42,7 +42,7 @@ def display_property_atttributeerror_exceptions(function):
     return wrapper
 
 
-class Path(object):
+class Path:
     """Holds the path to a FST node
 
     Path(node): path coming from the node's root
@@ -149,7 +149,7 @@ class Path(object):
         return to_return
 
 
-class LiteralyEvaluable(object):
+class LiteralyEvaluable:
     def to_python(self):
         try:
             return ast.literal_eval(self.dumps().strip())
@@ -160,7 +160,7 @@ class LiteralyEvaluable(object):
             raise e
 
 
-class GenericNodesUtils(object):
+class GenericNodesUtils:
     """
     Mixen top class for Node and NodeList that contains generic methods that are used by both.
     """
@@ -1333,7 +1333,7 @@ class ElseAttributeNode(CodeBlockNode):
         return super(ElseAttributeNode, self).__setattr__(name, value)
 
 
-class ProxyList(object):
+class ProxyList:
     def __init__(self, node_list, on_attribute="value"):
         self.node_list = node_list
         self.heading_formatting = []
