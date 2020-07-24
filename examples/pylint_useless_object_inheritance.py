@@ -5,7 +5,7 @@ from sys import argv
 
 project_path = argv[1]
 
-for file_name in listfiles(project_path,'py'):
+for file_name in listfiles(project_path,'.py'):
     source_code = read_file(file_name)
     red = RedBaron(source_code)
     resp = red.find_all('ClassNode')
