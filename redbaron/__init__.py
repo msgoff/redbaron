@@ -15,4 +15,9 @@ force_ipython_behavior = False
 
 
 for name in list(filter(lambda x: x.endswith("Node"), dir(nodes))):
-    list(map(ALL_IDENTIFIERS.add, filter(None, getattr(nodes, name).generate_identifiers())))
+    list(
+        map(
+            ALL_IDENTIFIERS.add,
+            filter(None, getattr(nodes, name).generate_identifiers()),
+        )
+    )

@@ -4,17 +4,20 @@
 """ Tests the root method """
 
 import pytest
+
 # pylint: disable=redefined-outer-name
 from redbaron import RedBaron
 
 
 @pytest.fixture
 def red():
-    return RedBaron("""\
+    return RedBaron(
+        """\
 @deco
 def a(c, d):
     b = c + d
-""")
+"""
+    )
 
 
 def test_root(red):
@@ -44,7 +47,7 @@ def test_root(red):
         red.def_.value.node_list[1].value,
         red.def_.value.node_list[1].value.first,
         red.def_.value.node_list[1].value.second,
-        red.def_.value.node_list[2]
+        red.def_.value.node_list[2],
     ]
 
     for node in nodes:

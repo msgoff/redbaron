@@ -4,8 +4,14 @@
 """ Tests the rendering feature """
 
 import redbaron
-from redbaron import (RedBaron, NodeList, CommaProxyList,
-                      DotProxyList, LineProxyList, DecoratorsLineProxyList)
+from redbaron import (
+    RedBaron,
+    NodeList,
+    CommaProxyList,
+    DotProxyList,
+    LineProxyList,
+    DecoratorsLineProxyList,
+)
 
 redbaron.DEBUG = True
 
@@ -632,7 +638,9 @@ def test_line_proxy_list_set_item():
 def test_line_proxy_list_set_slice():
     red = RedBaron("while a:\n    pass\n    a\n    plop\n    z\n")
     red[0].value[1:2] = ["caramba", "compote"]
-    assert red.dumps() == "while a:\n    pass\n    caramba\n    compote\n    plop\n    z\n"
+    assert (
+        red.dumps() == "while a:\n    pass\n    caramba\n    compote\n    plop\n    z\n"
+    )
 
 
 def test_line_proxy_list_delslice():
@@ -683,6 +691,7 @@ class A():
     while c:
         pass
 """
+
 
 def test_line_proxy_dont_break_next_block_identation():
     red = RedBaron(forwarded_indented_code)
@@ -758,17 +767,24 @@ def test_line_proxy_with_blank_line_list_remove_2():
 def test_line_proxy_with_blank_line_list_set_slice():
     red = RedBaron("while a:\n    pass\n\n    plop\n    a\n    plop\n    z\n")
     red[0].value[1:2] = ["caramba", "compote"]
-    assert red.dumps() == "while a:\n    pass\n    caramba\n    compote\n    plop\n    a\n    plop\n    z\n"
+    assert (
+        red.dumps()
+        == "while a:\n    pass\n    caramba\n    compote\n    plop\n    a\n    plop\n    z\n"
+    )
 
 
 def test_line_proxy_with_blank_line_list_delslice():
-    red = RedBaron("while a:\n    pass\n\n    plop\n    caramba\n    compote\n    plop\n    z\n")
+    red = RedBaron(
+        "while a:\n    pass\n\n    plop\n    caramba\n    compote\n    plop\n    z\n"
+    )
     del red[0].value[1:4]
     assert red.dumps() == "while a:\n    pass\n    compote\n    plop\n    z\n"
 
 
 def test_line_proxy_with_blank_line_list_getslice():
-    red = RedBaron("while a:\n    pass\n\n    plop\n    caramba\n    compote\n    plop\n    z\n")
+    red = RedBaron(
+        "while a:\n    pass\n\n    plop\n    caramba\n    compote\n    plop\n    z\n"
+    )
     result = red[0].value[1:3]
     expected_result = LineProxyList(NodeList([red[0].value[1], red[0].value[2]]))
     assert len(result) == len(expected_result)
@@ -807,6 +823,7 @@ class A():
     while c:
         pass
 """
+
 
 def test_line_proxy_with_blank_line_dont_break_next_block_identation():
     red = RedBaron(forwarded_indented_code)
@@ -1025,6 +1042,7 @@ with stuff:
     ]
 """
 
+
 def test_comma_proxy_list_indented_in_indentation_case():
     red = RedBaron(comma_proxy_list_indented_code_to_test)
     red.list_.append("2")
@@ -1099,7 +1117,9 @@ def test_decorator_line_proxy_list_delslice():
 def test_decorator_line_proxy_list_getslice():
     red = RedBaron("@a\n@b\n@c\ndef a():\n    pass\n")
     result = red[0].decorators[1:3]
-    expected_result = DecoratorsLineProxyList(NodeList([red[0].decorators[1], red[0].decorators[2]]))
+    expected_result = DecoratorsLineProxyList(
+        NodeList([red[0].decorators[1], red[0].decorators[2]])
+    )
     assert len(result) == len(expected_result)
     assert result[0] == expected_result[0]
 
@@ -1108,8 +1128,6 @@ def test_decorator_line_proxy_list_extend():
     red = RedBaron("def a():\n    pass\n")
     red[0].decorators.extend(["@zob"])
     assert red.dumps() == "@zob\ndef a():\n    pass\n"
-
-
 
 
 forwarded_indented_code_decorators = """
@@ -1130,6 +1148,7 @@ class A():
     def c(self):
         pass
 """
+
 
 def test_decorator_line_proxy_dont_break_next_block_identation():
     red = RedBaron(forwarded_indented_code_decorators)

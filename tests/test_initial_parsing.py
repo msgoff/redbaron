@@ -10,9 +10,20 @@ import re
 import redbaron
 
 from baron.render import nodes_rendering_order
-from redbaron import (RedBaron, NameNode, EndlNode, IntNode, AssignmentNode,
-                      PassNode, NodeList, CommaNode, DotNode, CallNode,
-                      CommaProxyList, baron_type_to_redbaron_classname)
+from redbaron import (
+    RedBaron,
+    NameNode,
+    EndlNode,
+    IntNode,
+    AssignmentNode,
+    PassNode,
+    NodeList,
+    CommaNode,
+    DotNode,
+    CallNode,
+    CommaProxyList,
+    baron_type_to_redbaron_classname,
+)
 
 
 def test_all_class_are_declared():
@@ -96,7 +107,7 @@ def test_get_helpers():
     red = RedBaron("a")
     assert red[0]._get_helpers() == []
     red = RedBaron("import a")
-    assert red[0]._get_helpers() == ['modules', 'names']
+    assert red[0]._get_helpers() == ["modules", "names"]
 
 
 def test_help_is_not_crashing1():
@@ -177,9 +188,9 @@ def test_assign_on_object_value_fst():
 
 def test_generate_helpers():
     red = RedBaron("def a(): pass")
-    assert set(red[0].generate_identifiers()) == set([
-        "funcdef", "funcdef_", "defnode", "def", "def_"
-    ])
+    assert set(red[0].generate_identifiers()) == set(
+        ["funcdef", "funcdef_", "defnode", "def", "def_"]
+    )
 
 
 def test_assign_node_list():
@@ -215,11 +226,11 @@ def test_assign_node_list_fst():
 def test_assign_node_list_mixed():
     red = RedBaron("[1, 2, 3]")
     l = red[0]
-    l.value = ["plop",
-               {"type": "comma",
-                "first_formatting": [],
-                "second_formatting": []},
-               {"type": "name", "value": "pouet"}]
+    l.value = [
+        "plop",
+        {"type": "comma", "first_formatting": [], "second_formatting": []},
+        {"type": "name", "value": "pouet"},
+    ]
     assert l.value[0].value == "plop"
     assert l.value[0].type == "name"
     assert l.value.node_list[1].type == "comma"
@@ -315,14 +326,14 @@ def test_node_next_recursive():
     red = RedBaron("def a():\n    b = 1\ndef c():\n    d = 1")
     assert red[1].next is None
     assert red[1].next_recursive is None
-    first, second = red.find_all('def')
+    first, second = red.find_all("def")
     assert first.next is second
     inner = first.value.node_list
     assert inner[0].next == inner[1]
     assert inner[0].next_recursive == inner[1]
     assert inner[1].next == inner[2]
     assert inner[1].next_recursive == inner[2]
-    assert inner[2].next == None
+    assert inner[2].next is None
     assert inner[2].next_recursive == second
 
 
@@ -342,14 +353,14 @@ def test_node_previous_recursive():
     red = RedBaron("def a():\n    b = 1\ndef c():\n    d = 1")
     assert red[0].previous is None
     assert red[0].previous_recursive is None
-    first, second = red.find_all('def')
+    first, second = red.find_all("def")
     assert second.previous is first
     inner = second.value.node_list
     assert inner[2].previous == inner[1]
     assert inner[2].previous_recursive == inner[1]
     assert inner[1].previous == inner[0]
     assert inner[1].previous_recursive == inner[0]
-    assert inner[0].previous == None
+    assert inner[0].previous is None
     assert inner[0].previous_recursive == first
 
 
@@ -360,8 +371,9 @@ def test_node_next_generator():
 
 def test_node_previous_generator():
     red = RedBaron("[1, 2, 3]")
-    assert list(red[0].value.node_list[2].previous_generator()) \
-        == list(reversed(red[0].value.node_list[:2]))
+    assert list(red[0].value.node_list[2].previous_generator()) == list(
+        reversed(red[0].value.node_list[:2])
+    )
 
 
 def test_node_next_intuitive():
@@ -585,7 +597,9 @@ def test_node_trynode_outside_previous_intuitive_except_except_else():
 
 
 def test_node_trynode_outside_previous_intuitive_except_except_else_finally():
-    red = RedBaron("try:\n    pass\nexcept: pass\nexcept: pass\nelse: pass\nfinally: pass\nafter")
+    red = RedBaron(
+        "try:\n    pass\nexcept: pass\nexcept: pass\nelse: pass\nfinally: pass\nafter"
+    )
     assert red.find("name", "after").previous_intuitive is red.finally_
 
 
@@ -711,17 +725,17 @@ def test_node_whilenode_outside_previous_intuitive_else():
 
 def test_map():
     red = RedBaron("[1, 2, 3]")
-    assert red('int').map(lambda x: x.value) == NodeList(["1", "2", "3"])
+    assert red("int").map(lambda x: x.value) == NodeList(["1", "2", "3"])
 
 
 def test_apply():
     red = RedBaron("a()\nb()")
-    assert red('call').apply(lambda x: str(x)) == red('call')
+    assert red("call").apply(lambda x: str(x)) == red("call")
 
 
 def test_filter():
     red = RedBaron("[1, 2, 3]")
-    assert red[0].value.filter(lambda x: x.type != "comma") == red('int')
+    assert red[0].value.filter(lambda x: x.type != "comma") == red("int")
     assert isinstance(red[0].value.filter(lambda x: x.type != "comma"), NodeList)
 
 
@@ -730,8 +744,13 @@ def test_indent_root():
     assert red[0].indentation == ""
     red = RedBaron("pouet\nplop\npop")
     assert [x.indentation for x in red.node_list] == ["", "", "", "", ""]
-    assert [x.get_indentation_node() for x in red.node_list] \
-        == [None, None, red.node_list[1], None, red.node_list[3]]
+    assert [x.get_indentation_node() for x in red.node_list] == [
+        None,
+        None,
+        red.node_list[1],
+        None,
+        red.node_list[3],
+    ]
 
 
 def test_in_while():
@@ -773,14 +792,16 @@ def test_filtered_endl():
 
 def test_filtered_comma():
     red = RedBaron("[1, 2, 3]")
-    assert red[0].value.filtered() \
-        == tuple(red[0].value.filter(lambda x: not isinstance(x, CommaNode)))
+    assert red[0].value.filtered() == tuple(
+        red[0].value.filter(lambda x: not isinstance(x, CommaNode))
+    )
 
 
 def test_filtered_dot():
     red = RedBaron("a.b.c(d)")
-    assert red[0].value.filtered() \
-        == tuple(red[0].value.filter(lambda x: not isinstance(x, DotNode)))
+    assert red[0].value.filtered() == tuple(
+        red[0].value.filter(lambda x: not isinstance(x, DotNode))
+    )
 
 
 SOME_DATA_FOR_TEST = """\
@@ -793,26 +814,26 @@ def plop():
 
 def test_parent_find_empty():
     red = RedBaron("a")
-    assert red[0].parent_find('a') is None
+    assert red[0].parent_find("a") is None
 
 
 def test_parent_find_direct():
     red = RedBaron(SOME_DATA_FOR_TEST)
     target = red.assignment.target
-    assert target.parent_find('with') is red.with_
+    assert target.parent_find("with") is red.with_
 
 
 def test_parent_find_two_levels():
     red = RedBaron(SOME_DATA_FOR_TEST)
     target = red.assignment.target
-    assert target.parent_find('def') is red.find('def', name='a')
+    assert target.parent_find("def") is red.find("def", name="a")
 
 
 def test_parent_find_two_levels_options():
     red = RedBaron(SOME_DATA_FOR_TEST)
     target = red.assignment.target
-    assert target.parent_find('def', name='plop') is red.def_
-    assert target.parent_find('def', name='dont_exist') is None
+    assert target.parent_find("def", name="plop") is red.def_
+    assert target.parent_find("def", name="dont_exist") is None
 
 
 def test_find_empty():
@@ -848,13 +869,13 @@ def test_find_case_insensitive():
 def test_find_kwarg_lambda():
     red = RedBaron("[1, 2, 3, 4]")
     assert red.find("int", value=lambda x: int(x) % 2 == 0) == red("int")[1]
-    assert red("int", value=lambda x: int(x) % 2 == 0) == red('int')[1::2]
+    assert red("int", value=lambda x: int(x) % 2 == 0) == red("int")[1::2]
 
 
 def test_find_lambda():
     red = RedBaron("[1, 2, 3, 4]")
-    assert red.find("int", lambda x: int(x.value) % 2 == 0) == red('int')[1]
-    assert red("int", lambda x: int(x.value) % 2 == 0) == red('int')[1::2]
+    assert red.find("int", lambda x: int(x.value) % 2 == 0) == red("int")[1]
+    assert red("int", lambda x: int(x.value) % 2 == 0) == red("int")[1::2]
 
 
 def test_find_kwarg_regex_instance():
@@ -864,8 +885,9 @@ def test_find_kwarg_regex_instance():
 
 def test_find_all_kwarg_regex_instance():
     red = RedBaron("plop\npop\npouf\nabcd")
-    assert red("name", value=re.compile("^po")) \
-        == red("name", value=lambda x: x.startswith("po"))
+    assert red("name", value=re.compile("^po")) == red(
+        "name", value=lambda x: x.startswith("po")
+    )
 
 
 def test_find_kwarg_regex_syntaxe():
@@ -875,8 +897,9 @@ def test_find_kwarg_regex_syntaxe():
 
 def test_find_all_kwarg_regex_syntaxe():
     red = RedBaron("plop\npop\npouf\nabcd")
-    assert red("name", value="re:^po") \
-        == red("name", value=lambda x: x.startswith("po"))
+    assert red("name", value="re:^po") == red(
+        "name", value=lambda x: x.startswith("po")
+    )
 
 
 def test_find_kwarg_glob_syntaxe():
@@ -886,8 +909,7 @@ def test_find_kwarg_glob_syntaxe():
 
 def test_find_all_kwarg_glob_syntaxe():
     red = RedBaron("plop\npop\npouf\nabcd")
-    assert red("name", value="g:po*") \
-        == red("name", value=lambda x: x.startswith("po"))
+    assert red("name", value="g:po*") == red("name", value=lambda x: x.startswith("po"))
 
 
 def test_identifier_find_kwarg_lambda():
@@ -962,12 +984,12 @@ def test_default_test_value_find_all():
 
 def test_find_comment_node():
     red = RedBaron("def f():\n    #a\n    pass\n#b")
-    assert red.find('comment').value == '#a'
+    assert red.find("comment").value == "#a"
 
 
 def test_find_all_comment_nodes():
     red = RedBaron("def f():\n    #a\n    pass\n#b")
-    assert [x.value for x in red.find_all('comment')] == ['#a', '#b']
+    assert [x.value for x in red.find_all("comment")] == ["#a", "#b"]
 
 
 def test_default_test_value_find_def():
@@ -988,7 +1010,7 @@ def test_copy_correct_isntance():
 def test_indentation_no_parent():
     red = RedBaron("a")
     assert red[0].copy().get_indentation_node() is None
-    assert red[0].copy().indentation == ''
+    assert red[0].copy().indentation == ""
 
 
 def test_replace():

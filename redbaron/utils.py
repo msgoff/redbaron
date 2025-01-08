@@ -15,14 +15,13 @@ else:
     from StringIO import StringIO
 
 
-
 def baron_type_to_redbaron_classname(baron_type):
     return "".join(map(lambda x: x.capitalize(), baron_type.split("_"))) + "Node"
 
 
 def redbaron_classname_to_baron_type(name):
-    name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name.replace("Node", ""))
-    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()
+    name = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", name.replace("Node", ""))
+    return re.sub("([a-z0-9])([A-Z])", r"\1_\2", name).lower()
 
 
 def log(string, *args):
@@ -35,10 +34,11 @@ def in_a_shell():
     if redbaron.DEBUG or isinstance(sys.stdout, StringIO):
         return True
     try:
-        if hasattr(sys.stdout, 'fileno') and os.isatty(sys.stdout.fileno()):
+        if hasattr(sys.stdout, "fileno") and os.isatty(sys.stdout.fileno()):
             return True
     except Exception:
-        # someone is doing strange things with stdout (eg: bpython or ipython notebook)
+        # someone is doing strange things with stdout (eg: bpython or ipython
+        # notebook)
         return False
 
     return False
@@ -58,6 +58,6 @@ def truncate(text, n):
         return text
 
     truncated = list(text)
-    truncated[-3:-1] = ['.', '.', '.']
-    del truncated[n-4 : -4]
+    truncated[-3:-1] = [".", ".", "."]
+    del truncated[n - 4 : -4]
     return "".join(truncated)

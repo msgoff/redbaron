@@ -35,4 +35,3 @@ def test_truncate():
     assert "12345" == truncate("12345", 4)
     assert "1...6" == truncate("123456", 5)
     assert "123456...0" == truncate("12345678901234567890", 10)
-

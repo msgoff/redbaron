@@ -3,7 +3,7 @@ import redbaron
 from redbaron import RedBaron, private_config
 
 
-class Test():
+class Test:
     def setup_method(self, method):
         private_config.force_ipython_behavior = True
         private_config.DEBUG = True
@@ -43,17 +43,19 @@ def test_highlight(capsys, monkeypatch):
     try:
         import pygments  # noqa
     except ImportError:
-        pytest.skip('missing pygments.')
-    monkeypatch.setattr(redbaron, 'force_ipython_behavior', True)
+        pytest.skip("missing pygments.")
+    monkeypatch.setattr(redbaron, "force_ipython_behavior", True)
 
     RedBaron("a = []").help()
     captured = capsys.readouterr()
 
-    if tuple(map(int, pytest.__version__.split('.'))) <= (3, 3):
+    if tuple(map(int, pytest.__version__.split("."))) <= (3, 3):
         out = captured[0]
     else:
         out = captured.out
-    assert out == """\
+    assert (
+        out
+        == """\
 0 -----------------------------------------------------
 \x1b[38;5;148mAssignmentNode\x1b[39m\x1b[38;5;197m(\x1b[39m\x1b[38;5;197m)\x1b[39m
 \x1b[38;5;15m  \x1b[39m\x1b[38;5;242m# identifiers: assign, assignment, assignment_, assignmentnode\x1b[39m
@@ -67,3 +69,4 @@ def test_highlight(capsys, monkeypatch):
 \x1b[38;5;15m  \x1b[39m\x1b[38;5;15mvalue\x1b[39m\x1b[38;5;15m \x1b[39m\x1b[38;5;197m->\x1b[39m
 \x1b[38;5;15m    \x1b[39m\x1b[38;5;15m[\x1b[39m\x1b[38;5;15m]\x1b[39m
 """
+    )

@@ -17,7 +17,8 @@ from redbaron import nodes, base_nodes
 
 # CommaProxyList indented
 # "change formatting style"
-# the "\n" after the "[{(" is hold by the parent node, this parent node should have a method to tell the CommaProxyList where this is
+# the "\n" after the "[{(" is hold by the parent node, this parent node
+# should have a method to tell the CommaProxyList where this is
 
 # FIXME: doc others.rst line 244
 # FIXME: __setattr__ is broken on formatting
@@ -33,8 +34,12 @@ class RedBaron(base_nodes.GenericNodesUtils, base_nodes.LineProxyList):
         self.first_blank_lines = []  # XXX might need changes
 
         if isinstance(source_code, string_instance):
-            self.node_list = base_nodes.NodeList.from_fst(baron.parse(source_code), parent=self, on_attribute="root")
-            self.middle_separator = nodes.DotNode({"type": "endl", "formatting": [], "value": "\n", "indent": ""})
+            self.node_list = base_nodes.NodeList.from_fst(
+                baron.parse(source_code), parent=self, on_attribute="root"
+            )
+            self.middle_separator = nodes.DotNode(
+                {"type": "endl", "formatting": [], "value": "\n", "indent": ""}
+            )
 
             self.data = []
             previous = None
@@ -57,7 +62,11 @@ class RedBaron(base_nodes.GenericNodesUtils, base_nodes.LineProxyList):
         self.parent = None
 
     def _convert_input_to_node_object(self, value, parent, on_attribute):
-        return base_nodes.GenericNodesUtils._convert_input_to_node_object(self, value, self, "root")
+        return base_nodes.GenericNodesUtils._convert_input_to_node_object(
+            self, value, self, "root"
+        )
 
     def _convert_input_to_node_object_list(self, value, parent, on_attribute):
-        return base_nodes.GenericNodesUtils._convert_input_to_node_object_list(self, value, self, "root")
+        return base_nodes.GenericNodesUtils._convert_input_to_node_object_list(
+            self, value, self, "root"
+        )

@@ -4,6 +4,7 @@
 """ Tests the setter methods """
 
 import pytest
+
 # pylint: disable=redefined-outer-name
 from redbaron import RedBaron
 from baron.utils import string_instance
@@ -505,15 +506,15 @@ def test_assign_node_setattr_value():
 
 def test_assign_node_setattr_operator():
     red = RedBaron("a = b")
-    red[0].operator = '+'
+    red[0].operator = "+"
     assert red.dumps() == "a += b"
-    red[0].operator = '+='
+    red[0].operator = "+="
     assert red.dumps() == "a += b"
-    red[0].operator = '='
+    red[0].operator = "="
     assert red.dumps() == "a = b"
-    red[0].operator = '-'
+    red[0].operator = "-"
     assert red.dumps() == "a -= b"
-    red[0].operator = ''
+    red[0].operator = ""
     assert red.dumps() == "a = b"
     with pytest.raises(Exception):
         red[0].operator = "raise"
@@ -1704,41 +1705,53 @@ def test_name_as_name_setattr_target_was_none():
     assert red.dumps() == "from x import a as qsd"
 
 
-has_else_member_list = [("while True:\n    pass\n", "else"), ("for a in a:\n    pass\n", "else"),("try:\n    pass\nexcept:\n    pass\n", "else"), ("try:\n    pass\nexcept:\n    pass\n", "finally")]
+has_else_member_list = [
+    ("while True:\n    pass\n", "else"),
+    ("for a in a:\n    pass\n", "else"),
+    ("try:\n    pass\nexcept:\n    pass\n", "else"),
+    ("try:\n    pass\nexcept:\n    pass\n", "finally"),
+]
+
 
 @pytest.fixture(params=has_else_member_list)
 def has_else_member(request):
     return request.param
 
-simple_body = ["plop",
-"    plop",
-"\nplop",
-"  \nplop",
-"  \n   plop",
-"                          plop",
-"\n                          plop",
-"  \n                        plop",
-"plop\n",
-"plop\n\n",
-"plop\n\n\n\n\n",
+
+simple_body = [
+    "plop",
+    "    plop",
+    "\nplop",
+    "  \nplop",
+    "  \n   plop",
+    "                          plop",
+    "\n                          plop",
+    "  \n                        plop",
+    "plop\n",
+    "plop\n\n",
+    "plop\n\n\n\n\n",
 ]
+
 
 @pytest.fixture(params=simple_body)
 def else_simple_body(request):
     return request.param
 
 
-two_lines_body = ["plop\nplouf",
-"\nplop\nplouf",
-"    plop\n    plouf",
-"\n    plop\n    plouf",
-"    \n    plop\n    plouf",
-" plop\n plouf",
-"\n plop\n plouf",
-" \n plop\n plouf",
-"            plop\n            plouf",
-"\n            plop\n            plouf",
-"            \n            plop\n            plouf"]
+two_lines_body = [
+    "plop\nplouf",
+    "\nplop\nplouf",
+    "    plop\n    plouf",
+    "\n    plop\n    plouf",
+    "    \n    plop\n    plouf",
+    " plop\n plouf",
+    "\n plop\n plouf",
+    " \n plop\n plouf",
+    "            plop\n            plouf",
+    "\n            plop\n            plouf",
+    "            \n            plop\n            plouf",
+]
+
 
 @pytest.fixture(params=two_lines_body)
 def else_two_line_body(request):
@@ -1762,6 +1775,7 @@ simple_body_starting_with_else = [
     " %s:\n        pass\n      \n\n\n\n",
 ]
 
+
 @pytest.fixture(params=simple_body_starting_with_else)
 def else_simple_body_starting_with_else(request):
     return request.param
@@ -1769,50 +1783,96 @@ def else_simple_body_starting_with_else(request):
 
 def test_while_else_simple(else_simple_body_starting_with_else, has_else_member):
     red = RedBaron(has_else_member[0])
-    setattr(red[0], has_else_member[1] + "_", else_simple_body_starting_with_else % has_else_member[1])
+    setattr(
+        red[0],
+        has_else_member[1] + "_",
+        else_simple_body_starting_with_else % has_else_member[1],
+    )
     assert red.dumps() == "%s%s:\n    pass\n" % (has_else_member[0], has_else_member[1])
 
 
 def test_while_else_simple_root_level(else_simple_body, has_else_member):
     red = RedBaron("%s\n\ndef other_stuff(): pass\n" % has_else_member[0])
     setattr(red[0], has_else_member[1] + "_", else_simple_body)
-    assert red.dumps() == "%s%s:\n    plop\n\n\ndef other_stuff(): pass\n" % (has_else_member[0], has_else_member[1])
+    assert red.dumps() == "%s%s:\n    plop\n\n\ndef other_stuff(): pass\n" % (
+        has_else_member[0],
+        has_else_member[1],
+    )
 
 
-def test_while_else_not_simple_root_level(else_simple_body_starting_with_else, has_else_member):
+def test_while_else_not_simple_root_level(
+    else_simple_body_starting_with_else, has_else_member
+):
     red = RedBaron("%s\n\ndef other_stuff(): pass\n" % has_else_member[0])
-    setattr(red[0], has_else_member[1] + "_", else_simple_body_starting_with_else % has_else_member[1])
-    assert red.dumps() == "%s%s:\n    pass\n\n\ndef other_stuff(): pass\n" % (has_else_member[0], has_else_member[1])
+    setattr(
+        red[0],
+        has_else_member[1] + "_",
+        else_simple_body_starting_with_else % has_else_member[1],
+    )
+    assert red.dumps() == "%s%s:\n    pass\n\n\ndef other_stuff(): pass\n" % (
+        has_else_member[0],
+        has_else_member[1],
+    )
 
 
 def test_while_else_root_level_too_few_blanks_lines(else_simple_body, has_else_member):
     red = RedBaron("%s\ndef other_stuff(): pass\n" % has_else_member[0])
     setattr(red[0], has_else_member[1] + "_", else_simple_body)
-    assert red.dumps() == "%s%s:\n    plop\n\n\ndef other_stuff(): pass\n" % (has_else_member[0], has_else_member[1])
+    assert red.dumps() == "%s%s:\n    plop\n\n\ndef other_stuff(): pass\n" % (
+        has_else_member[0],
+        has_else_member[1],
+    )
 
 
-def test_while_else_root_level_too_few_blanks_lines_starting_with_else(else_simple_body_starting_with_else, has_else_member):
+def test_while_else_root_level_too_few_blanks_lines_starting_with_else(
+    else_simple_body_starting_with_else, has_else_member
+):
     red = RedBaron("%s\ndef other_stuff(): pass\n" % has_else_member[0])
-    setattr(red[0], has_else_member[1] + "_", else_simple_body_starting_with_else % has_else_member[1])
-    assert red.dumps() == "%s%s:\n    pass\n\n\ndef other_stuff(): pass\n" % (has_else_member[0], has_else_member[1])
+    setattr(
+        red[0],
+        has_else_member[1] + "_",
+        else_simple_body_starting_with_else % has_else_member[1],
+    )
+    assert red.dumps() == "%s%s:\n    pass\n\n\ndef other_stuff(): pass\n" % (
+        has_else_member[0],
+        has_else_member[1],
+    )
 
 
 def test_while_else_root_level_too_much_blanks_lines(else_simple_body, has_else_member):
     red = RedBaron("%s\ndef other_stuff(): pass\n" % has_else_member[0])
     setattr(red[0], has_else_member[1] + "_", else_simple_body)
-    assert red.dumps() == "%s%s:\n    plop\n\n\ndef other_stuff(): pass\n" % (has_else_member[0], has_else_member[1])
+    assert red.dumps() == "%s%s:\n    plop\n\n\ndef other_stuff(): pass\n" % (
+        has_else_member[0],
+        has_else_member[1],
+    )
 
 
-def test_while_else_root_level_too_much_blanks_lines_starting_with_else(else_simple_body_starting_with_else, has_else_member):
+def test_while_else_root_level_too_much_blanks_lines_starting_with_else(
+    else_simple_body_starting_with_else, has_else_member
+):
     red = RedBaron("%s\ndef other_stuff(): pass\n" % has_else_member[0])
-    setattr(red[0], has_else_member[1] + "_", else_simple_body_starting_with_else % has_else_member[1])
-    assert red.dumps() == "%s%s:\n    pass\n\n\ndef other_stuff(): pass\n" % (has_else_member[0], has_else_member[1])
+    setattr(
+        red[0],
+        has_else_member[1] + "_",
+        else_simple_body_starting_with_else % has_else_member[1],
+    )
+    assert red.dumps() == "%s%s:\n    pass\n\n\ndef other_stuff(): pass\n" % (
+        has_else_member[0],
+        has_else_member[1],
+    )
 
 
-def test_while_else_root_level_too_much_blanks_lines_starting_two_line_body(else_two_line_body, has_else_member):
+def test_while_else_root_level_too_much_blanks_lines_starting_two_line_body(
+    else_two_line_body, has_else_member
+):
     red = RedBaron("%s\ndef other_stuff(): pass\n" % has_else_member[0])
     setattr(red[0], has_else_member[1] + "_", else_two_line_body)
-    assert red.dumps() == "%s%s:\n    plop\n    plouf\n\n\ndef other_stuff(): pass\n" % (has_else_member[0], has_else_member[1])
+    assert (
+        red.dumps()
+        == "%s%s:\n    plop\n    plouf\n\n\ndef other_stuff(): pass\n"
+        % (has_else_member[0], has_else_member[1])
+    )
 
 
 def test_while_else(else_simple_body, has_else_member):
@@ -1824,7 +1884,10 @@ def test_while_else(else_simple_body, has_else_member):
 def test_while_else_two_line_body(else_two_line_body, has_else_member):
     red = RedBaron("%s" % has_else_member[0])
     setattr(red[0], has_else_member[1] + "_", else_two_line_body)
-    assert red.dumps() == "%s%s:\n    plop\n    plouf\n" % (has_else_member[0], has_else_member[1])
+    assert red.dumps() == "%s%s:\n    plop\n    plouf\n" % (
+        has_else_member[0],
+        has_else_member[1],
+    )
 
 
 code_else_block_setattr_one_level = """\
@@ -1844,16 +1907,32 @@ def test_while_else_setattr_one_level_simple_body(else_simple_body, has_else_mem
     result_keyword = has_else_member[1]
     has_else_member = "\n    ".join(has_else_member[0].split("\n")).rstrip()
     red = RedBaron(code_else_block_setattr_one_level % has_else_member)
-    setattr(red[0].value.node_list[1], result_keyword, else_simple_body.replace("plop", "pass"))
-    assert red.dumps() == code_else_block_setattr_one_level_result % (has_else_member, result_keyword)
+    setattr(
+        red[0].value.node_list[1],
+        result_keyword,
+        else_simple_body.replace("plop", "pass"),
+    )
+    assert red.dumps() == code_else_block_setattr_one_level_result % (
+        has_else_member,
+        result_keyword,
+    )
 
 
-def test_while_else_setattr_one_level_simple_body_start_with_else(else_simple_body_starting_with_else, has_else_member):
+def test_while_else_setattr_one_level_simple_body_start_with_else(
+    else_simple_body_starting_with_else, has_else_member
+):
     result_keyword = has_else_member[1]
     has_else_member = "\n    ".join(has_else_member[0].split("\n")).rstrip()
     red = RedBaron(code_else_block_setattr_one_level % has_else_member)
-    setattr(red[0].value.node_list[1], result_keyword, else_simple_body_starting_with_else % result_keyword)
-    assert red.dumps() == code_else_block_setattr_one_level_result % (has_else_member, result_keyword)
+    setattr(
+        red[0].value.node_list[1],
+        result_keyword,
+        else_simple_body_starting_with_else % result_keyword,
+    )
+    assert red.dumps() == code_else_block_setattr_one_level_result % (
+        has_else_member,
+        result_keyword,
+    )
 
 
 code_else_block_setattr_one_level_followed = """\
@@ -1873,20 +1952,38 @@ def pouet():
 """
 
 
-def test_while_else_setattr_one_level_simple_body_followed(else_simple_body, has_else_member):
+def test_while_else_setattr_one_level_simple_body_followed(
+    else_simple_body, has_else_member
+):
     result_keyword = has_else_member[1]
     has_else_member = "\n    ".join(has_else_member[0].split("\n")).rstrip()
     red = RedBaron(code_else_block_setattr_one_level_followed % has_else_member)
-    setattr(red[0].value.node_list[1], result_keyword, else_simple_body.replace("plop", "pass"))
-    assert red.dumps() == code_else_block_setattr_one_level_followed_result % (has_else_member, result_keyword)
+    setattr(
+        red[0].value.node_list[1],
+        result_keyword,
+        else_simple_body.replace("plop", "pass"),
+    )
+    assert red.dumps() == code_else_block_setattr_one_level_followed_result % (
+        has_else_member,
+        result_keyword,
+    )
 
 
-def test_while_else_setattr_one_level_simple_body_start_with_else_followed(else_simple_body_starting_with_else, has_else_member):
+def test_while_else_setattr_one_level_simple_body_start_with_else_followed(
+    else_simple_body_starting_with_else, has_else_member
+):
     result_keyword = has_else_member[1]
     has_else_member = "\n    ".join(has_else_member[0].split("\n")).rstrip()
     red = RedBaron(code_else_block_setattr_one_level_followed % has_else_member)
-    setattr(red[0].value.node_list[1], result_keyword, else_simple_body_starting_with_else % result_keyword)
-    assert red.dumps() == code_else_block_setattr_one_level_followed_result % (has_else_member, result_keyword)
+    setattr(
+        red[0].value.node_list[1],
+        result_keyword,
+        else_simple_body_starting_with_else % result_keyword,
+    )
+    assert red.dumps() == code_else_block_setattr_one_level_followed_result % (
+        has_else_member,
+        result_keyword,
+    )
 
 
 def test_get_last_member_to_clean_while():
@@ -1998,19 +2095,29 @@ def test_try_setattr_excepts_replace_strip():
 def test_try_setattr_excepts_indented():
     red = RedBaron("def a():\n    try:\n        pass\n    finally:\n        pass")
     red.try_.excepts = "    except:\n        pass\n"
-    assert red.dumps() == "def a():\n    try:\n        pass\n    except:\n        pass\n    finally:\n        pass\n"
+    assert (
+        red.dumps()
+        == "def a():\n    try:\n        pass\n    except:\n        pass\n    finally:\n        pass\n"
+    )
 
 
 def test_try_setattr_excepts_indented_replace():
     red = RedBaron("def a():\n    try:\n        pass\n    except:\n        pouet")
     red.try_.excepts = "    except:\n        pass\n"
-    assert red.dumps() == "def a():\n    try:\n        pass\n    except:\n        pass\n"
+    assert (
+        red.dumps() == "def a():\n    try:\n        pass\n    except:\n        pass\n"
+    )
 
 
 def test_try_setattr_excepts_indented_replace_followed():
-    red = RedBaron("def a():\n    try:\n        pass\n    except:\n        pouet\n\n    plop\n")
+    red = RedBaron(
+        "def a():\n    try:\n        pass\n    except:\n        pouet\n\n    plop\n"
+    )
     red.try_.excepts = "    except:\n        pass\n"
-    assert red.dumps() == "def a():\n    try:\n        pass\n    except:\n        pass\n\n    plop\n"
+    assert (
+        red.dumps()
+        == "def a():\n    try:\n        pass\n    except:\n        pass\n\n    plop\n"
+    )
 
 
 def test_ifelseblock_setattr():

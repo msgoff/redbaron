@@ -16,10 +16,20 @@ from baron.render import nodes_rendering_order
 
 import redbaron
 
-from redbaron.utils import redbaron_classname_to_baron_type, baron_type_to_redbaron_classname, log, in_a_shell, indent, \
-    truncate
+from redbaron.utils import (
+    redbaron_classname_to_baron_type,
+    baron_type_to_redbaron_classname,
+    log,
+    in_a_shell,
+    indent,
+    truncate,
+)
 from redbaron.private_config import runned_from_ipython
-from redbaron.syntax_highlight import help_highlight, python_highlight, python_html_highlight
+from redbaron.syntax_highlight import (
+    help_highlight,
+    python_highlight,
+    python_html_highlight,
+)
 
 if python_version == 3:
     from collections import UserList
@@ -36,6 +46,7 @@ def display_property_atttributeerror_exceptions(function):
             return function(*args, **kwargs)
         except AttributeError:
             import traceback
+
             traceback.print_exc()
             raise
 
@@ -96,12 +107,14 @@ class Path:
         return self.path
 
     def __str__(self):
-        return 'Path(%s @ %s)' % (
-            self.node.__class__.__name__ + ('(' + self.node.type + ')' if isinstance(self.node, Node) else ''),
-            str(self.path))
+        return "Path(%s @ %s)" % (
+            self.node.__class__.__name__
+            + ("(" + self.node.type + ")" if isinstance(self.node, Node) else ""),
+            str(self.path),
+        )
 
     def __repr__(self):
-        return '<' + self.__str__() + ' object at ' + str(id(self)) + '>'
+        return "<" + self.__str__() + " object at " + str(id(self)) + ">"
 
     def __eq__(self, other):
         if isinstance(other, Path):
@@ -141,11 +154,19 @@ class Path:
             return pos
 
         if isinstance(node, NodeList):
-            return next((key for (_, key, _) in parent._render() if
-                         getattr(parent, key, None) is node or getattr(getattr(parent, key, None), "node_list",
-                                                                       None) is node), None)
+            return next(
+                (
+                    key
+                    for (_, key, _) in parent._render()
+                    if getattr(parent, key, None) is node
+                    or getattr(getattr(parent, key, None), "node_list", None) is node
+                ),
+                None,
+            )
 
-        to_return = next((key for (_, key, _) in parent._render() if key == node.on_attribute), None)
+        to_return = next(
+            (key for (_, key, _) in parent._render() if key == node.on_attribute), None
+        )
         return to_return
 
 
@@ -154,7 +175,7 @@ class LiteralyEvaluable:
         try:
             return ast.literal_eval(self.dumps().strip())
         except ValueError as e:
-            message = 'to_python method only works on numbers, strings, list, tuple, dict, boolean and None. (using ast.literal_eval). The piece of code that you are trying to convert contains an illegale value, for example, a variable.'
+            message = "to_python method only works on numbers, strings, list, tuple, dict, boolean and None. (using ast.literal_eval). The piece of code that you are trying to convert contains an illegale value, for example, a variable."
             e.message = message
             e.args = (message,)
             raise e
@@ -168,9 +189,13 @@ class GenericNodesUtils:
     def _convert_input_to_node_object(self, value, parent, on_attribute, generic=False):
         if isinstance(value, string_instance):
             if generic:
-                return Node.from_fst(baron.parse(value)[0], parent=parent, on_attribute=on_attribute)
+                return Node.from_fst(
+                    baron.parse(value)[0], parent=parent, on_attribute=on_attribute
+                )
             else:
-                return self._string_to_node(value, parent=parent, on_attribute=on_attribute)
+                return self._string_to_node(
+                    value, parent=parent, on_attribute=on_attribute
+                )
         elif isinstance(value, dict):
             return Node.from_fst(value, parent=parent, on_attribute=on_attribute)
         elif isinstance(value, Node):
@@ -181,15 +206,21 @@ class GenericNodesUtils:
         raise NotImplementedError
 
     def _string_to_node(self, string, parent, on_attribute):
-        return Node.from_fst(baron.parse(string)[0], parent=parent, on_attribute=on_attribute)
+        return Node.from_fst(
+            baron.parse(string)[0], parent=parent, on_attribute=on_attribute
+        )
 
     def _convert_input_to_node_object_list(self, value, parent, on_attribute):
         if isinstance(value, string_instance):
-            return self._string_to_node_list(value, parent=parent, on_attribute=on_attribute)
+            return self._string_to_node_list(
+                value, parent=parent, on_attribute=on_attribute
+            )
 
         if isinstance(value, dict):  # assuming that we got some fst
             # also assuming the user do strange things
-            return NodeList([Node.from_fst(value, parent=parent, on_attribute=on_attribute)])
+            return NodeList(
+                [Node.from_fst(value, parent=parent, on_attribute=on_attribute)]
+            )
 
         if isinstance(value, Node):
             value.parent = parent
@@ -206,7 +237,9 @@ class GenericNodesUtils:
             # assume the user can pass a list of random stuff
             new_value = NodeList()
             for i in value:
-                new_value.append(self._convert_input_to_node_object(i, parent, on_attribute))
+                new_value.append(
+                    self._convert_input_to_node_object(i, parent, on_attribute)
+                )
 
             return new_value
 
@@ -227,7 +260,9 @@ class GenericNodesUtils:
         return baron.path.path_to_bounding_box(self.root.fst(), path)
 
     def find_by_position(self, position):
-        path = Path.from_baron_path(self, baron.path.position_to_path(self.fst(), position))
+        path = Path.from_baron_path(
+            self, baron.path.position_to_path(self.fst(), position)
+        )
         return path.node if path else None
 
     def at(self, line_no):
@@ -237,14 +272,16 @@ class GenericNodesUtils:
         node = self.find_by_position((line_no, 1))
 
         if node.absolute_bounding_box.top_left.line == line_no:
-            if hasattr(node.parent, 'absolute_bounding_box') and \
-                            node.parent.absolute_bounding_box.top_left.line == line_no and \
-                    node.parent.parent is not None:
+            if (
+                hasattr(node.parent, "absolute_bounding_box")
+                and node.parent.absolute_bounding_box.top_left.line == line_no
+                and node.parent.parent is not None
+            ):
                 return node.parent
 
             return node
 
-        elif node is not None and hasattr(node, 'next_rendered'):
+        elif node is not None and hasattr(node, "next_rendered"):
             return list(self._iter_in_rendering_order(node.next_rendered))[0]
 
         elif node.parent is None:
@@ -258,7 +295,9 @@ class GenericNodesUtils:
         return node
 
     def _string_to_node_list(self, string, parent, on_attribute):
-        return NodeList.from_fst(baron.parse(string), parent=parent, on_attribute=on_attribute)
+        return NodeList.from_fst(
+            baron.parse(string), parent=parent, on_attribute=on_attribute
+        )
 
     def parse_decorators(self, string, parent, on_attribute):
         indentation = self.indentation
@@ -331,8 +370,14 @@ class NodeList(UserList, GenericNodesUtils):
 
     @classmethod
     def from_fst(klass, node_list, parent=None, on_attribute=None):
-        return klass(map(lambda x: Node.from_fst(x, parent=parent, on_attribute=on_attribute), node_list),
-                     parent=parent, on_attribute=on_attribute)
+        return klass(
+            map(
+                lambda x: Node.from_fst(x, parent=parent, on_attribute=on_attribute),
+                node_list,
+            ),
+            parent=parent,
+            on_attribute=on_attribute,
+        )
 
     def find(self, identifier, *args, **kwargs):
         for i in self.data:
@@ -343,13 +388,16 @@ class NodeList(UserList, GenericNodesUtils):
     def __getattr__(self, key):
         if key not in redbaron.ALL_IDENTIFIERS:
             raise AttributeError(
-                "%s instance has no attribute '%s' and '%s' is not a valid identifier of another node" % (
-                    self.__class__.__name__, key, key))
+                "%s instance has no attribute '%s' and '%s' is not a valid identifier of another node"
+                % (self.__class__.__name__, key, key)
+            )
 
         return self.find(key)
 
     def __setitem__(self, key, value):
-        self.data[key] = self._convert_input_to_node_object(value, parent=self.parent, on_attribute=self.on_attribute)
+        self.data[key] = self._convert_input_to_node_object(
+            value, parent=self.parent, on_attribute=self.on_attribute
+        )
 
     def find_iter(self, identifier, *args, **kwargs):
         for node in self.data:
@@ -379,19 +427,21 @@ class NodeList(UserList, GenericNodesUtils):
         if in_a_shell():
             return self.__str__()
 
-        return "<%s %s, \"%s\" %s, on %s %s>" % (
+        return '<%s %s, "%s" %s, on %s %s>' % (
             self.__class__.__name__,
             self.path().to_baron_path(),
             truncate(self.dumps().replace("\n", "\\n"), 20),
             id(self),
             self.parent.__class__.__name__,
-            id(self.parent)
+            id(self.parent),
         )
 
     def __str__(self):
         to_return = ""
         for number, value in enumerate(self.data):
-            to_return += ("%-3s " % number) + "\n    ".join(value.__repr__().split("\n"))
+            to_return += ("%-3s " % number) + "\n    ".join(
+                value.__repr__().split("\n")
+            )
             to_return += "\n"
         return to_return
 
@@ -406,23 +456,31 @@ class NodeList(UserList, GenericNodesUtils):
                 yield str(num).encode("Utf-8")
                 yield b"</td>"
                 yield b"<td>"
-                yield item._bytes_repr_html_() if hasattr(item, "_repr_html_") else str(item).encode("Utf-8")
+                yield (
+                    item._bytes_repr_html_()
+                    if hasattr(item, "_repr_html_")
+                    else str(item).encode("Utf-8")
+                )
                 yield b"</td>"
                 yield b"</tr>"
             yield b"</table>"
 
-        return b''.join(__repr_html(self))
+        return b"".join(__repr_html(self))
 
     def _repr_html_(self):
         return self._bytes_repr_html_().decode("Utf-8")
 
     def help(self, deep=2, with_formatting=False):
         for num, i in enumerate(self.data):
-            sys.stdout.write(str(num) + " -----------------------------------------------------\n")
+            sys.stdout.write(
+                str(num) + " -----------------------------------------------------\n"
+            )
             i.help(deep=deep, with_formatting=with_formatting)
 
     def __help__(self, deep=2, with_formatting=False):
-        return [x.__help__(deep=deep, with_formatting=with_formatting) for x in self.data]
+        return [
+            x.__help__(deep=deep, with_formatting=with_formatting) for x in self.data
+        ]
 
     def copy(self):
         # XXX not very optimised but at least very simple
@@ -451,8 +509,20 @@ class NodeList(UserList, GenericNodesUtils):
         return NodeList([x for x in self.data if function(x)])
 
     def filtered(self):
-        return tuple([x for x in self.data if
-                      not isinstance(x, (redbaron.nodes.EndlNode, redbaron.nodes.CommaNode, redbaron.nodes.DotNode))])
+        return tuple(
+            [
+                x
+                for x in self.data
+                if not isinstance(
+                    x,
+                    (
+                        redbaron.nodes.EndlNode,
+                        redbaron.nodes.CommaNode,
+                        redbaron.nodes.DotNode,
+                    ),
+                )
+            ]
+        )
 
     def _generate_nodes_in_rendering_order(self):
         previous = None
@@ -474,7 +544,12 @@ class NodeList(UserList, GenericNodesUtils):
         done = set()
         for i in self.data:
             for node in i._generate_nodes_in_rendering_order():
-                if node.type != "endl" and previous is not None and previous.type == "endl" and previous not in done:
+                if (
+                    node.type != "endl"
+                    and previous is not None
+                    and previous.type == "endl"
+                    and previous not in done
+                ):
                     previous.indent += number_of_spaces * " "
                     done.add(previous)
                 previous = node
@@ -484,7 +559,12 @@ class NodeList(UserList, GenericNodesUtils):
         done = set()
         for i in self.data:
             for node in i._generate_nodes_in_rendering_order():
-                if node.type != "endl" and previous is not None and previous.type == "endl" and previous not in done:
+                if (
+                    node.type != "endl"
+                    and previous is not None
+                    and previous.type == "endl"
+                    and previous not in done
+                ):
                     previous.indent = previous.indent[number_of_spaces:]
                     done.add(previous)
                 previous = node
@@ -506,7 +586,11 @@ class Node(GenericNodesUtils):
         for kind, key, _ in filter(lambda x: x[0] != "constant", self._render()):
             if kind == "key":
                 if fst[key]:
-                    setattr(self, key, Node.from_fst(fst[key], parent=self, on_attribute=key))
+                    setattr(
+                        self,
+                        key,
+                        Node.from_fst(fst[key], parent=self, on_attribute=key),
+                    )
                 else:
                     setattr(self, key, None)
                 self._dict_keys.append(key)
@@ -516,7 +600,11 @@ class Node(GenericNodesUtils):
                 self._str_keys.append(key)
 
             elif kind in ("list", "formatting"):
-                setattr(self, key, NodeList.from_fst(fst[key], parent=self, on_attribute=key))
+                setattr(
+                    self,
+                    key,
+                    NodeList.from_fst(fst[key], parent=self, on_attribute=key),
+                )
                 self._list_keys.append(key)
 
             else:
@@ -527,7 +615,9 @@ class Node(GenericNodesUtils):
     @classmethod
     def from_fst(klass, node, parent=None, on_attribute=None):
         class_name = baron_type_to_redbaron_classname(node["type"])
-        return getattr(redbaron.nodes, class_name)(node, parent=parent, on_attribute=on_attribute)
+        return getattr(redbaron.nodes, class_name)(
+            node, parent=parent, on_attribute=on_attribute
+        )
 
     @property
     @display_property_atttributeerror_exceptions
@@ -592,7 +682,9 @@ class Node(GenericNodesUtils):
         if in_list is None:
             return None
 
-        next_node = list(itertools.dropwhile(lambda x: x is not self, reversed(in_list)))[1:]
+        next_node = list(
+            itertools.dropwhile(lambda x: x is not self, reversed(in_list))
+        )[1:]
         return next_node[0] if next_node else None
 
     @property
@@ -706,16 +798,25 @@ class Node(GenericNodesUtils):
         return in_list
 
     def __getattr__(self, key):
-        if key.endswith("_") and key[:-1] in self._dict_keys + self._list_keys + self._str_keys:
+        if (
+            key.endswith("_")
+            and key[:-1] in self._dict_keys + self._list_keys + self._str_keys
+        ):
             return getattr(self, key[:-1])
 
-        if key != "value" and hasattr(self, "value") and isinstance(self.value, ProxyList) and hasattr(self.value, key):
+        if (
+            key != "value"
+            and hasattr(self, "value")
+            and isinstance(self.value, ProxyList)
+            and hasattr(self.value, key)
+        ):
             return getattr(self.value, key)
 
         if key not in redbaron.ALL_IDENTIFIERS:
             raise AttributeError(
-                "%s instance has no attribute '%s' and '%s' is not a valid identifier of another node" % (
-                    self.__class__.__name__, key, key))
+                "%s instance has no attribute '%s' and '%s' is not a valid identifier of another node"
+                % (self.__class__.__name__, key, key)
+            )
 
         return self.find(key)
 
@@ -736,7 +837,9 @@ class Node(GenericNodesUtils):
             self.value[key] = value
 
         else:
-            raise TypeError("'%s' object does not support item assignment" % self.__class__)
+            raise TypeError(
+                "'%s' object does not support item assignment" % self.__class__
+            )
 
     def __setslice__(self, i, j, value):
         if hasattr(self, "value") and isinstance(self.value, ProxyList):
@@ -748,7 +851,8 @@ class Node(GenericNodesUtils):
         if hasattr(self, "value") and isinstance(self.value, ProxyList):
             return self.value.__len__()
 
-        # XXX bad, because __len__ exists, if will called to check if this object is True
+        # XXX bad, because __len__ exists, if will called to check if this
+        # object is True
         return True
 
     def __delitem__(self, key):
@@ -777,7 +881,7 @@ class Node(GenericNodesUtils):
             yield self
 
         if recursive:
-            for (kind, key, _) in self._render():
+            for kind, key, _ in self._render():
                 if kind == "key":
                     node = getattr(self, key)
                     if not isinstance(node, Node):
@@ -803,7 +907,7 @@ class Node(GenericNodesUtils):
 
     def parent_find(self, identifier, *args, **kwargs):
         current = self
-        while current.parent and current.on_attribute != 'root':
+        while current.parent and current.on_attribute != "root":
             if self._node_match_query(current.parent, identifier, *args, **kwargs):
                 return current.parent
 
@@ -811,15 +915,25 @@ class Node(GenericNodesUtils):
         return None
 
     def _node_match_query(self, node, identifier, *args, **kwargs):
-        if not self._attribute_match_query(node.generate_identifiers(), identifier.lower() if isinstance(identifier,
-                                                                                                         string_instance) and not identifier.startswith(
-            "re:") else identifier):
+        if not self._attribute_match_query(
+            node.generate_identifiers(),
+            (
+                identifier.lower()
+                if isinstance(identifier, string_instance)
+                and not identifier.startswith("re:")
+                else identifier
+            ),
+        ):
             return False
 
         all_my_keys = node._str_keys + node._list_keys + node._dict_keys
 
-        if args and isinstance(args[0], (string_instance, RE_PATTERN_FIELD, list, tuple)):
-            if not self._attribute_match_query([getattr(node, node._default_test_value)], args[0]):
+        if args and isinstance(
+            args[0], (string_instance, RE_PATTERN_FIELD, list, tuple)
+        ):
+            if not self._attribute_match_query(
+                [getattr(node, node._default_test_value)], args[0]
+            ):
                 return False
             args = args[1:]
 
@@ -877,58 +991,73 @@ class Node(GenericNodesUtils):
 
     @classmethod
     def generate_identifiers(klass):
-        return sorted(set(map(lambda x: x.lower(), [
-            redbaron_classname_to_baron_type(klass.__name__),
-            klass.__name__,
-            klass.__name__.replace("Node", ""),
-            redbaron_classname_to_baron_type(klass.__name__) + "_"
-        ] + klass._other_identifiers)))
+        return sorted(
+            set(
+                map(
+                    lambda x: x.lower(),
+                    [
+                        redbaron_classname_to_baron_type(klass.__name__),
+                        klass.__name__,
+                        klass.__name__.replace("Node", ""),
+                        redbaron_classname_to_baron_type(klass.__name__) + "_",
+                    ]
+                    + klass._other_identifiers,
+                )
+            )
+        )
 
     def _get_helpers(self):
-        not_helpers = set([
-            'at',
-            'copy',
-            'decrease_indentation',
-            'dumps',
-            'edit',
-            'find',
-            'find_all',
-            'findAll',
-            'find_by_path',
-            'find_by_position',
-            'find_iter',
-            'from_fst',
-            'fst',
-            'fst',
-            'generate_identifiers',
-            'get_absolute_bounding_box_of_attribute',
-            'get_indentation_node',
-            'get_indentation_node',
-            'has_render_key',
-            'help',
-            'help',
-            'increase_indentation',
-            'indentation_node_is_direct',
-            'indentation_node_is_direct',
-            'index_on_parent',
-            'index_on_parent_raw',
-            'insert_after',
-            'insert_before',
-            'next_generator',
-            'next_generator',
-            'parent_find',
-            'parent_find',
-            'parse_code_block',
-            'parse_decorators',
-            'path',
-            'path',
-            'previous_generator',
-            'previous_generator',
-            'replace',
-            'to_python',
-        ])
-        return [x for x in dir(self) if
-                not x.startswith("_") and x not in not_helpers and inspect.ismethod(getattr(self, x))]
+        not_helpers = set(
+            [
+                "at",
+                "copy",
+                "decrease_indentation",
+                "dumps",
+                "edit",
+                "find",
+                "find_all",
+                "findAll",
+                "find_by_path",
+                "find_by_position",
+                "find_iter",
+                "from_fst",
+                "fst",
+                "fst",
+                "generate_identifiers",
+                "get_absolute_bounding_box_of_attribute",
+                "get_indentation_node",
+                "get_indentation_node",
+                "has_render_key",
+                "help",
+                "help",
+                "increase_indentation",
+                "indentation_node_is_direct",
+                "indentation_node_is_direct",
+                "index_on_parent",
+                "index_on_parent_raw",
+                "insert_after",
+                "insert_before",
+                "next_generator",
+                "next_generator",
+                "parent_find",
+                "parent_find",
+                "parse_code_block",
+                "parse_decorators",
+                "path",
+                "path",
+                "previous_generator",
+                "previous_generator",
+                "replace",
+                "to_python",
+            ]
+        )
+        return [
+            x
+            for x in dir(self)
+            if not x.startswith("_")
+            and x not in not_helpers
+            and inspect.ismethod(getattr(self, x))
+        ]
 
     def fst(self):
         to_return = {}
@@ -952,9 +1081,15 @@ class Node(GenericNodesUtils):
 
     def help(self, deep=2, with_formatting=False):
         if runned_from_ipython():
-            sys.stdout.write(help_highlight(self.__help__(deep=deep, with_formatting=with_formatting) + "\n"))
+            sys.stdout.write(
+                help_highlight(
+                    self.__help__(deep=deep, with_formatting=with_formatting) + "\n"
+                )
+            )
         else:
-            sys.stdout.write(self.__help__(deep=deep, with_formatting=with_formatting) + "\n")
+            sys.stdout.write(
+                self.__help__(deep=deep, with_formatting=with_formatting) + "\n"
+            )
 
     def __help__(self, deep=2, with_formatting=False):
         new_deep = deep - 1 if not isinstance(deep, bool) else deep
@@ -969,33 +1104,76 @@ class Node(GenericNodesUtils):
                 to_join.append("# helpers: %s" % ", ".join(self._get_helpers()))
             if self._default_test_value != "value":
                 to_join.append("# default test value: %s" % self._default_test_value)
-            to_join += ["%s=%s" % (key, repr(getattr(self, key))) for key in self._str_keys if
-                        key != "type" and "formatting" not in key]
-            to_join += ["%s ->\n    %s" % (key, indent(
-                getattr(self, key).__help__(deep=new_deep, with_formatting=with_formatting),
-                "    ").lstrip() if getattr(self, key) else getattr(self, key)) for key in self._dict_keys if
-                        "formatting" not in key]
+            to_join += [
+                "%s=%s" % (key, repr(getattr(self, key)))
+                for key in self._str_keys
+                if key != "type" and "formatting" not in key
+            ]
+            to_join += [
+                "%s ->\n    %s"
+                % (
+                    key,
+                    (
+                        indent(
+                            getattr(self, key).__help__(
+                                deep=new_deep, with_formatting=with_formatting
+                            ),
+                            "    ",
+                        ).lstrip()
+                        if getattr(self, key)
+                        else getattr(self, key)
+                    ),
+                )
+                for key in self._dict_keys
+                if "formatting" not in key
+            ]
             # need to do this otherwise I end up with stacked quoted list
-            # example: value=[\'DottedAsNameNode(target=\\\'None\\\', as=\\\'False\\\', value=DottedNameNode(value=["NameNode(value=\\\'pouet\\\')"])]
+            # example: value=[\'DottedAsNameNode(target=\\\'None\\\',
+            # as=\\\'False\\\',
+            # value=DottedNameNode(value=["NameNode(value=\\\'pouet\\\')"])]
             for key in filter(lambda x: "formatting" not in x, self._list_keys):
                 to_join.append(("%s ->" % key))
                 for i in getattr(self, key):
                     to_join.append(
-                        "  * " + indent(i.__help__(deep=new_deep, with_formatting=with_formatting), "      ").lstrip())
+                        "  * "
+                        + indent(
+                            i.__help__(deep=new_deep, with_formatting=with_formatting),
+                            "      ",
+                        ).lstrip()
+                    )
 
         if deep and with_formatting:
-            to_join += ["%s=%s" % (key, repr(getattr(self, key))) for key in self._str_keys if
-                        key != "type" and "formatting" in key]
-            to_join += ["%s=%s" % (key, getattr(self, key).__help__(deep=new_deep,
-                                                                    with_formatting=with_formatting) if getattr(self,
-                                                                                                                key) else getattr(
-                self, key)) for key in self._dict_keys if "formatting" in key]
+            to_join += [
+                "%s=%s" % (key, repr(getattr(self, key)))
+                for key in self._str_keys
+                if key != "type" and "formatting" in key
+            ]
+            to_join += [
+                "%s=%s"
+                % (
+                    key,
+                    (
+                        getattr(self, key).__help__(
+                            deep=new_deep, with_formatting=with_formatting
+                        )
+                        if getattr(self, key)
+                        else getattr(self, key)
+                    ),
+                )
+                for key in self._dict_keys
+                if "formatting" in key
+            ]
 
             for key in filter(lambda x: "formatting" in x, self._list_keys):
                 to_join.append(("%s ->" % key))
                 for i in getattr(self, key):
                     to_join.append(
-                        "  * " + indent(i.__help__(deep=new_deep, with_formatting=with_formatting), "      ").lstrip())
+                        "  * "
+                        + indent(
+                            i.__help__(deep=new_deep, with_formatting=with_formatting),
+                            "      ",
+                        ).lstrip()
+                    )
 
         return "\n  ".join(to_join)
 
@@ -1003,13 +1181,13 @@ class Node(GenericNodesUtils):
         if in_a_shell():
             return self.__str__()
 
-        return "<%s path=%s, \"%s\" %s, on %s %s>" % (
+        return '<%s path=%s, "%s" %s, on %s %s>' % (
             self.__class__.__name__,
             self.path().to_baron_path(),
             truncate(self.dumps().replace("\n", "\\n"), 20),
             id(self),
             self.parent.__class__.__name__,
-            id(self.parent)
+            id(self.parent),
         )
 
     def __str__(self):
@@ -1032,11 +1210,13 @@ class Node(GenericNodesUtils):
         if name == "init" or self.init:
             return super(Node, self).__setattr__(name, value)
 
-        # we don't want to mess with "__class__" for example but convert "async_" to "async"
+        # we don't want to mess with "__class__" for example but convert
+        # "async_" to "async"
         if name.endswith("_") and not name.endswith("__"):
             name = name[:-1]
 
-        # FIXME I'm pretty sure that Bool should also be put in the isinstance for cases like with_parenthesis/as
+        # FIXME I'm pretty sure that Bool should also be put in the isinstance
+        # for cases like with_parenthesis/as
         if name in self._str_keys and not isinstance(value, (string_instance, int)):
             value = str(value)
 
@@ -1052,9 +1232,13 @@ class Node(GenericNodesUtils):
         return nodes_rendering_order[self.type]
 
     def replace(self, new_node):
-        new_node = self._convert_input_to_node_object(new_node, parent=None, on_attribute=None, generic=True)
+        new_node = self._convert_input_to_node_object(
+            new_node, parent=None, on_attribute=None, generic=True
+        )
         self.__class__ = new_node.__class__  # YOLO
-        self.__init__(new_node.fst(), parent=self.parent, on_attribute=self.on_attribute)
+        self.__init__(
+            new_node.fst(), parent=self.parent, on_attribute=self.on_attribute
+        )
 
     def edit(self, editor=None):
         if editor is None:
@@ -1084,7 +1268,9 @@ class Node(GenericNodesUtils):
         if not self.parent:
             return None
 
-        if not isinstance(getattr(self.parent, self.on_attribute), (NodeList, ProxyList)):
+        if not isinstance(
+            getattr(self.parent, self.on_attribute), (NodeList, ProxyList)
+        ):
             return None
 
         return getattr(self.parent, self.on_attribute).index(self)
@@ -1095,7 +1281,9 @@ class Node(GenericNodesUtils):
         if not self.parent:
             return None
 
-        if not isinstance(getattr(self.parent, self.on_attribute), (NodeList, ProxyList)):
+        if not isinstance(
+            getattr(self.parent, self.on_attribute), (NodeList, ProxyList)
+        ):
             return None
 
         if isinstance(getattr(self.parent, self.on_attribute), ProxyList):
@@ -1127,7 +1315,9 @@ class Node(GenericNodesUtils):
         self.get_indentation_node().indent += number_of_spaces * " "
 
     def decrease_indentation(self, number_of_spaces):
-        self.get_indentation_node().indent = self.get_indentation_node().indent[:-len(number_of_spaces * " ")]
+        self.get_indentation_node().indent = self.get_indentation_node().indent[
+            : -len(number_of_spaces * " ")
+        ]
 
     def insert_before(self, value, offset=0):
         self.parent.insert(self.index_on_parent - offset, value)
@@ -1139,10 +1329,14 @@ class Node(GenericNodesUtils):
 class CodeBlockNode(Node):
     def _string_to_node_list(self, string, parent, on_attribute):
         if on_attribute == "value":
-            return self.parse_code_block(string, parent=parent, on_attribute=on_attribute)
+            return self.parse_code_block(
+                string, parent=parent, on_attribute=on_attribute
+            )
 
         elif on_attribute.endswith("_formatting"):
-            return super(CodeBlockNode, self)._string_to_node_list(string, parent, on_attribute)
+            return super(CodeBlockNode, self)._string_to_node_list(
+                string, parent, on_attribute
+            )
 
         else:
             raise Exception("Unhandled case")
@@ -1153,7 +1347,8 @@ class CodeBlockNode(Node):
         indentation = len(re.search("^ *", clean_string).group())
         target_indentation = len(self.indentation) + 4
 
-        # putting this in the string template will fail, need at least some indent
+        # putting this in the string template will fail, need at least some
+        # indent
         if indentation == 0:
             clean_string = "    " + "\n    ".join(clean_string.split("\n"))
             clean_string = clean_string.rstrip()
@@ -1169,10 +1364,15 @@ class CodeBlockNode(Node):
         elif indentation < target_indentation:
             result.increase_indentation(target_indentation - indentation)
 
-        endl_base_node = Node.from_fst({'formatting': [], 'indent': '', 'type': 'endl', 'value': '\n'},
-                                       on_attribute=on_attribute, parent=parent)
+        endl_base_node = Node.from_fst(
+            {"formatting": [], "indent": "", "type": "endl", "value": "\n"},
+            on_attribute=on_attribute,
+            parent=parent,
+        )
 
-        if (self.on_attribute == "root" and self.next) or (not self.next and self.parent and self.parent.next):
+        if (self.on_attribute == "root" and self.next) or (
+            not self.next and self.parent and self.parent.next
+        ):
             # I need to finish with 3 endl nodes
             if not all(map(lambda x: x.type == "endl", result[-1:])):
                 result.append(endl_base_node.copy())
@@ -1202,7 +1402,11 @@ class CodeBlockNode(Node):
             setattr(self, "value", LineProxyList(self.value, on_attribute="value"))
 
         elif key == "decorators" and not isinstance(self.decorators, LineProxyList):
-            setattr(self, "decorators", DecoratorsLineProxyList(self.decorators, on_attribute="decorators"))
+            setattr(
+                self,
+                "decorators",
+                DecoratorsLineProxyList(self.decorators, on_attribute="decorators"),
+            )
 
 
 class IfElseBlockSiblingNode(CodeBlockNode):
@@ -1231,7 +1435,9 @@ class ElseAttributeNode(CodeBlockNode):
     def _get_last_member_to_clean(self):
         return self
 
-    def _convert_input_to_one_indented_member(self, indented_type, string, parent, on_attribute):
+    def _convert_input_to_one_indented_member(
+        self, indented_type, string, parent, on_attribute
+    ):
         def remove_trailing_endl(node):
             if isinstance(node.value, ProxyList):
                 while node.value.node_list[-1].type == "endl":
@@ -1245,15 +1451,23 @@ class ElseAttributeNode(CodeBlockNode):
             remove_trailing_endl(last_member)
             if isinstance(last_member.value, ProxyList):
                 last_member.value.node_list.append(
-                    redbaron.nodes.EndlNode({"type": "endl", "indent": "", "formatting": [], "value": "\n"},
-                                            parent=last_member, on_attribute="value"))
+                    redbaron.nodes.EndlNode(
+                        {"type": "endl", "indent": "", "formatting": [], "value": "\n"},
+                        parent=last_member,
+                        on_attribute="value",
+                    )
+                )
             else:
                 last_member.value.append(
-                    redbaron.nodes.EndlNode({"type": "endl", "indent": "", "formatting": [], "value": "\n"},
-                                            parent=last_member, on_attribute="value"))
+                    redbaron.nodes.EndlNode(
+                        {"type": "endl", "indent": "", "formatting": [], "value": "\n"},
+                        parent=last_member,
+                        on_attribute="value",
+                    )
+                )
             return ""
 
-        if re.match("^\s*%s" % indented_type, string):
+        if re.match("^\\s*%s" % indented_type, string):
 
             # we've got indented text, let's deindent it
             if string.startswith((" ", "	")):
@@ -1262,30 +1476,42 @@ class ElseAttributeNode(CodeBlockNode):
                 string = re.sub("(\r?\n)%s" % (" " * indentation), "\\1", string)
                 string = string.lstrip()
 
-            node = Node.from_fst(baron.parse("try: pass\nexcept: pass\n%s" % string)[0][indented_type], parent=parent,
-                                 on_attribute=on_attribute)
-            node.value = self.parse_code_block(node.value.dumps(), parent=node, on_attribute="value")
+            node = Node.from_fst(
+                baron.parse("try: pass\nexcept: pass\n%s" % string)[0][indented_type],
+                parent=parent,
+                on_attribute=on_attribute,
+            )
+            node.value = self.parse_code_block(
+                node.value.dumps(), parent=node, on_attribute="value"
+            )
 
         else:
             # XXX quite hackish way of doing this
-            fst = {'first_formatting': [],
-                   'second_formatting': [],
-                   'type': indented_type,
-                   'value': [{'type': 'pass'},
-                             {'formatting': [],
-                              'indent': '',
-                              'type': 'endl',
-                              'value': '\n'}]
-                   }
+            fst = {
+                "first_formatting": [],
+                "second_formatting": [],
+                "type": indented_type,
+                "value": [
+                    {"type": "pass"},
+                    {"formatting": [], "indent": "", "type": "endl", "value": "\n"},
+                ],
+            }
 
             node = Node.from_fst(fst, parent=parent, on_attribute=on_attribute)
-            node.value = self.parse_code_block(string=string, parent=parent, on_attribute=on_attribute)
+            node.value = self.parse_code_block(
+                string=string, parent=parent, on_attribute=on_attribute
+            )
 
-        # ensure that the node ends with only one endl token, we'll add more later if needed
+        # ensure that the node ends with only one endl token, we'll add more
+        # later if needed
         remove_trailing_endl(node)
         node.value.node_list.append(
-            redbaron.nodes.EndlNode({"type": "endl", "indent": "", "formatting": [], "value": "\n"}, parent=node,
-                                    on_attribute="value"))
+            redbaron.nodes.EndlNode(
+                {"type": "endl", "indent": "", "formatting": [], "value": "\n"},
+                parent=node,
+                on_attribute="value",
+            )
+        )
 
         last_member = self._get_last_member_to_clean()
 
@@ -1294,24 +1520,49 @@ class ElseAttributeNode(CodeBlockNode):
             remove_trailing_endl(last_member)
             if isinstance(last_member.value, ProxyList):
                 last_member.value.node_list.append(
-                    redbaron.nodes.EndlNode({"type": "endl", "indent": "", "formatting": [], "value": "\n"},
-                                            parent=last_member, on_attribute="value"))
+                    redbaron.nodes.EndlNode(
+                        {"type": "endl", "indent": "", "formatting": [], "value": "\n"},
+                        parent=last_member,
+                        on_attribute="value",
+                    )
+                )
             else:
                 last_member.value.append(
-                    redbaron.nodes.EndlNode({"type": "endl", "indent": "", "formatting": [], "value": "\n"},
-                                            parent=last_member, on_attribute="value"))
+                    redbaron.nodes.EndlNode(
+                        {"type": "endl", "indent": "", "formatting": [], "value": "\n"},
+                        parent=last_member,
+                        on_attribute="value",
+                    )
+                )
 
             if self.indentation:
-                node.value.node_list.append(redbaron.nodes.EndlNode(
-                    {"type": "endl", "indent": self.indentation, "formatting": [], "value": "\n"}, parent=node,
-                    on_attribute="value"))
+                node.value.node_list.append(
+                    redbaron.nodes.EndlNode(
+                        {
+                            "type": "endl",
+                            "indent": self.indentation,
+                            "formatting": [],
+                            "value": "\n",
+                        },
+                        parent=node,
+                        on_attribute="value",
+                    )
+                )
             else:  # we are on root level and followed: we need 2 blanks lines after the node
                 node.value.node_list.append(
-                    redbaron.nodes.EndlNode({"type": "endl", "indent": "", "formatting": [], "value": "\n"},
-                                            parent=node, on_attribute="value"))
+                    redbaron.nodes.EndlNode(
+                        {"type": "endl", "indent": "", "formatting": [], "value": "\n"},
+                        parent=node,
+                        on_attribute="value",
+                    )
+                )
                 node.value.node_list.append(
-                    redbaron.nodes.EndlNode({"type": "endl", "indent": "", "formatting": [], "value": "\n"},
-                                            parent=node, on_attribute="value"))
+                    redbaron.nodes.EndlNode(
+                        {"type": "endl", "indent": "", "formatting": [], "value": "\n"},
+                        parent=node,
+                        on_attribute="value",
+                    )
+                )
 
         if isinstance(last_member.value, ProxyList):
             last_member.value.node_list[-1].indent = self.indentation
@@ -1322,9 +1573,13 @@ class ElseAttributeNode(CodeBlockNode):
 
     def _string_to_node(self, string, parent, on_attribute):
         if on_attribute != "else":
-            return super(ElseAttributeNode, self)._string_to_node(string, parent=parent, on_attribute=on_attribute)
+            return super(ElseAttributeNode, self)._string_to_node(
+                string, parent=parent, on_attribute=on_attribute
+            )
 
-        return self._convert_input_to_one_indented_member("else", string, parent, on_attribute)
+        return self._convert_input_to_one_indented_member(
+            "else", string, parent, on_attribute
+        )
 
     def __setattr__(self, name, value):
         if name == "else_":
@@ -1339,14 +1594,26 @@ class ProxyList:
         self.heading_formatting = []
         self.data = self._build_inner_list(node_list)
         self.middle_separator = redbaron.nodes.CommaNode(
-            {"type": "comma", "first_formatting": [], "second_formatting": [{"type": "space", "value": " "}]})
+            {
+                "type": "comma",
+                "first_formatting": [],
+                "second_formatting": [{"type": "space", "value": " "}],
+            }
+        )
         self.on_attribute = on_attribute
 
     def _build_inner_list(self, node_list):
         result = []
 
         for i in node_list:
-            if isinstance(i, (redbaron.nodes.EndlNode, redbaron.nodes.CommaNode, redbaron.nodes.DotNode)):
+            if isinstance(
+                i,
+                (
+                    redbaron.nodes.EndlNode,
+                    redbaron.nodes.CommaNode,
+                    redbaron.nodes.DotNode,
+                ),
+            ):
                 if result:
                     result[-1][1].append(i)
                 else:
@@ -1360,17 +1627,26 @@ class ProxyList:
         return self.node_list.find_all(identifier, *args, **kwargs)
 
     def _convert_input_to_node_object(self, value, parent, on_attribute):
-        lst = self.node_list.parent._convert_input_to_node_object_list(value, parent, on_attribute)
-        if all(i.type == 'endl' for i in lst):
+        lst = self.node_list.parent._convert_input_to_node_object_list(
+            value, parent, on_attribute
+        )
+        if all(i.type == "endl" for i in lst):
             return lst[0]
         else:
             return lst.filtered()[0]
 
     def _convert_input_to_node_object_list(self, value, parent, on_attribute):
         if isinstance(value, string_instance):
-            return self.node_list.parent._convert_input_to_node_object_list(value, parent, on_attribute)
+            return self.node_list.parent._convert_input_to_node_object_list(
+                value, parent, on_attribute
+            )
         else:
-            return NodeList([self._convert_input_to_node_object(x, parent, on_attribute) for x in value])
+            return NodeList(
+                [
+                    self._convert_input_to_node_object(x, parent, on_attribute)
+                    for x in value
+                ]
+            )
 
     def _generate_expected_list(self):
         expected_list = self.heading_formatting[:]
@@ -1391,13 +1667,15 @@ class ProxyList:
 
                 # XXX shoud uniformise the list of formatting nodes
                 elif is_last and i[1] and i[1][0].type in ("comma", "dot"):
-                    # XXX this will likely break comments if presents at the end of the list
+                    # XXX this will likely break comments if presents at the
+                    # end of the list
                     pass
                 else:
                     expected_list += i[1]
             else:
                 # here we generate the new expected formatting
-                # None is used as a sentry value for newly inserted values in the proxy list
+                # None is used as a sentry value for newly inserted values in
+                # the proxy list
                 if not is_last:
                     separator = self.middle_separator.copy()
                     separator.parent = self.node_list
@@ -1414,7 +1692,9 @@ class ProxyList:
         return len(self.data)
 
     def insert(self, index, value):
-        value = self._convert_input_to_node_object(value, parent=self.node_list, on_attribute=self.on_attribute)
+        value = self._convert_input_to_node_object(
+            value, parent=self.node_list, on_attribute=self.on_attribute
+        )
         self.data.insert(index, [value, None])
         self._synchronise()
 
@@ -1422,8 +1702,14 @@ class ProxyList:
         self.insert(len(self), value)
 
     def extend(self, values):
-        self.data.extend(map(lambda x: [x, None], self._convert_input_to_node_object_list(values, parent=self.node_list,
-                                                                                          on_attribute=self.on_attribute)))
+        self.data.extend(
+            map(
+                lambda x: [x, None],
+                self._convert_input_to_node_object_list(
+                    values, parent=self.node_list, on_attribute=self.on_attribute
+                ),
+            )
+        )
         self._synchronise()
 
     def pop(self, index=None):
@@ -1465,13 +1751,18 @@ class ProxyList:
         if isinstance(key, slice):
             self.__setslice__(key.start, key.stop, value)
         else:
-            self.data[key][0] = self._convert_input_to_node_object(value, parent=self.node_list,
-                                                                   on_attribute=self.on_attribute)
+            self.data[key][0] = self._convert_input_to_node_object(
+                value, parent=self.node_list, on_attribute=self.on_attribute
+            )
         self._synchronise()
 
     def __setslice__(self, i, j, value):
-        self.data[i:j] = map(lambda x: [x, None], self._convert_input_to_node_object_list(value, parent=self.node_list,
-                                                                                          on_attribute=self.on_attribute))
+        self.data[i:j] = map(
+            lambda x: [x, None],
+            self._convert_input_to_node_object_list(
+                value, parent=self.node_list, on_attribute=self.on_attribute
+            ),
+        )
         self._synchronise()
 
     def __delslice__(self, i, j):
@@ -1486,13 +1777,13 @@ class ProxyList:
         if in_a_shell():
             return self.__str__()
 
-        return "<%s %s, \"%s\" %s, on %s %s>" % (
+        return '<%s %s, "%s" %s, on %s %s>' % (
             self.__class__.__name__,
             self.path().to_baron_path(),
             truncate(self.dumps().replace("\n", "\\n"), 20),
             id(self),
             self.parent.__class__.__name__,
-            id(self.parent)
+            id(self.parent),
         )
 
     def _bytes_repr_html_(self):
@@ -1511,7 +1802,7 @@ class ProxyList:
                 yield b"</tr>"
             yield b"</table>"
 
-        return b''.join(__repr_html(self))
+        return b"".join(__repr_html(self))
 
     def _repr_html_(self):
         return self._bytes_repr_html_().decode("Utf-8")
@@ -1520,7 +1811,9 @@ class ProxyList:
         to_return = ""
         for number, value in enumerate(self.data):
             value = value[0]
-            to_return += (("%-3s " % number) + "\n    ".join(value.__repr__().split("\n")))
+            to_return += ("%-3s " % number) + "\n    ".join(
+                value.__repr__().split("\n")
+            )
             to_return += "\n"
         return to_return
 
@@ -1531,7 +1824,11 @@ class ProxyList:
 class CommaProxyList(ProxyList):
     def __init__(self, node_list, on_attribute="value"):
         super(CommaProxyList, self).__init__(node_list, on_attribute=on_attribute)
-        self.style = "indented" if any(self.node_list('comma', recursive=False).map(lambda x: x('endl'))) else "flat"
+        self.style = (
+            "indented"
+            if any(self.node_list("comma", recursive=False).map(lambda x: x("endl")))
+            else "flat"
+        )
 
         # XXX will likely break if the user modify the formatting of the list,
         # I don't like that
@@ -1539,11 +1836,28 @@ class CommaProxyList(ProxyList):
 
     def _get_middle_separator(self):
         if self.style == "indented":
-            return redbaron.nodes.CommaNode({"type": "comma", "first_formatting": [], "second_formatting": [
-                {"type": "endl", "indent": self.parent.indentation + "    ", "formatting": [], "value": "\n"}]})
+            return redbaron.nodes.CommaNode(
+                {
+                    "type": "comma",
+                    "first_formatting": [],
+                    "second_formatting": [
+                        {
+                            "type": "endl",
+                            "indent": self.parent.indentation + "    ",
+                            "formatting": [],
+                            "value": "\n",
+                        }
+                    ],
+                }
+            )
 
         return redbaron.nodes.CommaNode(
-            {"type": "comma", "first_formatting": [], "second_formatting": [{"type": "space", "value": " "}]})
+            {
+                "type": "comma",
+                "first_formatting": [],
+                "second_formatting": [{"type": "space", "value": " "}],
+            }
+        )
 
     def _generate_expected_list(self):
         def generate_separator():
@@ -1571,9 +1885,16 @@ class CommaProxyList(ProxyList):
                 if not is_last and not i[1]:
                     expected_list.append(generate_separator())
 
-                # comma list doesn't have trailing but has a comma at its end, remove it
-                elif is_last and not self.has_trailing and i[1] and i[1][0].type == "comma":
-                    # XXX this will likely break comments if presents at the end of the list
+                # comma list doesn't have trailing but has a comma at its end,
+                # remove it
+                elif (
+                    is_last
+                    and not self.has_trailing
+                    and i[1]
+                    and i[1][0].type == "comma"
+                ):
+                    # XXX this will likely break comments if presents at the
+                    # end of the list
                     pass
                 else:
                     expected_list += i[1]
@@ -1582,12 +1903,19 @@ class CommaProxyList(ProxyList):
                     if self.style == "indented":
                         if not expected_list[-1].second_formatting.endl:
                             raise Exception(
-                                "It appears that you have indentation in your CommaList, for now RedBaron doesn't know how to handle this situation (which requires a lot of work), sorry about that. You can find more information here https://github.com/PyCQA/redbaron/issues/100")
-                        elif expected_list[-1].second_formatting.endl.indent != self.parent.indentation + " " * 4:
-                            expected_list[-1].second_formatting.endl.indent = self.parent.indentation + " " * 4
+                                "It appears that you have indentation in your CommaList, for now RedBaron doesn't know how to handle this situation (which requires a lot of work), sorry about that. You can find more information here https://github.com/PyCQA/redbaron/issues/100"
+                            )
+                        elif (
+                            expected_list[-1].second_formatting.endl.indent
+                            != self.parent.indentation + " " * 4
+                        ):
+                            expected_list[-1].second_formatting.endl.indent = (
+                                self.parent.indentation + " " * 4
+                            )
             else:
                 # here we generate the new expected formatting
-                # None is used as a sentry value for newly inserted values in the proxy list
+                # None is used as a sentry value for newly inserted values in
+                # the proxy list
                 if not is_last:
                     expected_list.append(generate_separator())
                 elif self.has_trailing:
@@ -1597,9 +1925,15 @@ class CommaProxyList(ProxyList):
         if expected_list and self.has_trailing and self.style == "indented":
             if not expected_list[-1].second_formatting.endl:
                 raise Exception(
-                    "It appears that you have indentation in your CommaList, for now RedBaron doesn't know how to handle this situation (which requires a lot of work), sorry about that. You can find more information here https://github.com/PyCQA/redbaron/issues/100")
-            elif expected_list[-1].second_formatting.endl.indent != self.parent.indentation:
-                expected_list[-1].second_formatting.endl.indent = self.parent.indentation
+                    "It appears that you have indentation in your CommaList, for now RedBaron doesn't know how to handle this situation (which requires a lot of work), sorry about that. You can find more information here https://github.com/PyCQA/redbaron/issues/100"
+                )
+            elif (
+                expected_list[-1].second_formatting.endl.indent
+                != self.parent.indentation
+            ):
+                expected_list[-1].second_formatting.endl.indent = (
+                    self.parent.indentation
+                )
 
         return expected_list
 
@@ -1609,10 +1943,13 @@ class DotProxyList(ProxyList):
         # XXX this will have its limitations, users will probably wants to be
         # able to modify those, DotProxyList should be reconsidered for that
         super(DotProxyList, self).__init__(node_list, on_attribute=on_attribute)
-        self.middle_separator = redbaron.nodes.DotNode({"type": "dot", "first_formatting": [], "second_formatting": []})
+        self.middle_separator = redbaron.nodes.DotNode(
+            {"type": "dot", "first_formatting": [], "second_formatting": []}
+        )
 
     def _build_inner_list(self, node_list):
-        # XXX to merge with parent, behavior is the same only formatting nodes changes
+        # XXX to merge with parent, behavior is the same only formatting nodes
+        # changes
         result = []
 
         for i in node_list:
@@ -1648,13 +1985,15 @@ class DotProxyList(ProxyList):
 
                 # XXX shoud uniformise the list of formatting nodes
                 elif is_last and i[1] and i[1][0].type in ("comma", "dot"):
-                    # XXX this will likely break comments if presents at the end of the list
+                    # XXX this will likely break comments if presents at the
+                    # end of the list
                     pass
                 else:
                     expected_list += i[1]
             else:
                 # here we generate the new expected formatting
-                # None is used as a sentry value for newly inserted values in the proxy list
+                # None is used as a sentry value for newly inserted values in
+                # the proxy list
                 if not is_last:
                     separator = self.middle_separator.copy()
                     separator.parent = self.node_list
@@ -1669,7 +2008,9 @@ class DotProxyList(ProxyList):
         else:
             value = "a.%s" % value
 
-        return self.node_list.parent._convert_input_to_node_object_list(value, parent, on_attribute).filtered()[-1]
+        return self.node_list.parent._convert_input_to_node_object_list(
+            value, parent, on_attribute
+        ).filtered()[-1]
 
 
 class LineProxyList(ProxyList):
@@ -1677,12 +2018,21 @@ class LineProxyList(ProxyList):
         self.first_blank_lines = []
         super(LineProxyList, self).__init__(node_list, on_attribute=on_attribute)
         self.middle_separator = redbaron.nodes.DotNode(
-            {"type": "endl", "formatting": [], "value": "\n", "indent": "    "})
+            {"type": "endl", "formatting": [], "value": "\n", "indent": "    "}
+        )
 
     def _synchronise(self):
-        log("Before synchronise, self.data = '%s' + '%s'", self.first_blank_lines, self.node_list)
+        log(
+            "Before synchronise, self.data = '%s' + '%s'",
+            self.first_blank_lines,
+            self.node_list,
+        )
         super(LineProxyList, self)._synchronise()
-        log("After synchronise, self.data = '%s' + '%s'", self.first_blank_lines, self.node_list)
+        log(
+            "After synchronise, self.data = '%s' + '%s'",
+            self.first_blank_lines,
+            self.node_list,
+        )
 
     def _build_inner_list(self, node_list):
         result = []
@@ -1716,8 +2066,11 @@ class LineProxyList(ProxyList):
         return result
 
     def _get_separator_indentation(self):
-        return self.node_list.filtered()[
-            0].indentation if self.node_list.filtered() else self.parent.indentation + "    "
+        return (
+            self.node_list.filtered()[0].indentation
+            if self.node_list.filtered()
+            else self.parent.indentation + "    "
+        )
 
     def _generate_expected_list(self):
         log("Start _generate_expected_list for LineProxyList")
@@ -1736,13 +2089,13 @@ class LineProxyList(ProxyList):
         def get_real_last(node):
             try:
                 return node.node_list[-1]
-            except:
+            except BaseException:
                 return node[-1]
 
         def modify_last_indentation(node, indentation):
             try:
                 current_last = get_real_last(node)
-                while current_last.type in ('def', 'class', 'ifelseblock'):
+                while current_last.type in ("def", "class", "ifelseblock"):
                     current_last = get_real_last(current_last)
                 current_last.indent = indentation
             except (AttributeError, IndexError, TypeError):
@@ -1756,30 +2109,49 @@ class LineProxyList(ProxyList):
         might_need_separator = False
         has_added_separator = False
 
-        if expected_list and self.data and self.data[0][0].type == "endl" and not expected_list[-1].formatting.comment:
+        if (
+            expected_list
+            and self.data
+            and self.data[0][0].type == "endl"
+            and not expected_list[-1].formatting.comment
+        ):
             log("first_blank_lines doesn't has comments, reset indentation")
             expected_list[-1].indent = ""
 
         for position, i in enumerate(self.data):
             log("[%s] %s", position, i)
 
-            if might_need_separator and i[0].type != "endl" and (
-                        not previous or previous.type != "endl") and not isinstance(previous, (
-                    CodeBlockNode, redbaron.nodes.IfelseblockNode)):
-                log(">> Previous line has content and current needs to be indented, append separator to indent it")
+            if (
+                might_need_separator
+                and i[0].type != "endl"
+                and (not previous or previous.type != "endl")
+                and not isinstance(
+                    previous, (CodeBlockNode, redbaron.nodes.IfelseblockNode)
+                )
+            ):
+                log(
+                    ">> Previous line has content and current needs to be indented, append separator to indent it"
+                )
                 expected_list.append(generate_separator())
-                log("-- current result: %s", ["".join(map(lambda x: x.dumps(), expected_list))])
+                log(
+                    "-- current result: %s",
+                    ["".join(map(lambda x: x.dumps(), expected_list))],
+                )
                 previous = expected_list[-1]
                 might_need_separator = False
 
             if has_added_separator and i[0].type == "endl":
                 # XXX this will break comments if present
-                log("Previous is endl (from a added separator) and current is endl, remove indentation of previous")
+                log(
+                    "Previous is endl (from a added separator) and current is endl, remove indentation of previous"
+                )
                 expected_list[-1].indent = ""
 
             if previous and previous.type == "endl" and i[0].type == "endl":
                 # XXX this will break comments
-                log("Previous is endl and current is endl, remove indentation of previous")
+                log(
+                    "Previous is endl and current is endl, remove indentation of previous"
+                )
                 previous.indent = ""
 
             has_added_separator = False
@@ -1787,14 +2159,26 @@ class LineProxyList(ProxyList):
             is_last = position == len(self.data) - 1
             log(">> Append node to expected_list: '%s'", [i[0]])
             expected_list.append(i[0])
-            log("-- current result: %s", ["".join(map(lambda x: x.dumps(), expected_list))])
+            log(
+                "-- current result: %s",
+                ["".join(map(lambda x: x.dumps(), expected_list))],
+            )
 
-            if previous and previous.type == "endl" and i[0].type != "endl" and previous.indentation != indentation:
-                log("Previous is endl and current isn't endl and identation isn't correct, fix it")
+            if (
+                previous
+                and previous.type == "endl"
+                and i[0].type != "endl"
+                and previous.indentation != indentation
+            ):
+                log(
+                    "Previous is endl and current isn't endl and identation isn't correct, fix it"
+                )
                 previous.indent = indentation
 
             if i[0].type != "endl" and previous and isinstance(previous, CodeBlockNode):
-                log("Previous is CodeBlockNode and current isn't endl, ensure previous has the current identation")
+                log(
+                    "Previous is CodeBlockNode and current isn't endl, ensure previous has the current identation"
+                )
                 modify_last_indentation(get_real_last(previous.value), indentation)
 
             # XXX this will need refactoring...
@@ -1805,18 +2189,23 @@ class LineProxyList(ProxyList):
                 # this happen because a new value has been added after this one
                 if not is_last and not i[1] and not isinstance(i[0], CodeBlockNode):
                     log(
-                        "If current isn't a CodeBlockNode and doesn't have a separator and isn't the last, mark it has might needing a separator")
+                        "If current isn't a CodeBlockNode and doesn't have a separator and isn't the last, mark it has might needing a separator"
+                    )
                     might_need_separator = True
 
                 # XXX shoud uniformise the list of formatting nodes
                 elif is_last and i[1] and i[1][0].type in ("comma", "dot"):
-                    # XXX this will likely break comments if presents at the end of the list
+                    # XXX this will likely break comments if presents at the
+                    # end of the list
                     log("Current is last and a CodeBlockNode, don't do anything")
                     pass
                 else:
                     log(">> Append formatting to expected_list: %s", i[1])
                     expected_list += i[1]
-                    log("-- current result: %s", ["".join(map(lambda x: x.dumps(), expected_list))])
+                    log(
+                        "-- current result: %s",
+                        ["".join(map(lambda x: x.dumps(), expected_list))],
+                    )
             else:
                 log("current HAS None for formatting")
                 # here we generate the new expected formatting
@@ -1829,7 +2218,10 @@ class LineProxyList(ProxyList):
                     log(">> Current is not last and not endl, append a separator")
                     has_added_separator = True
                     expected_list.append(generate_separator())
-                    log("-- current result: %s", ["".join(map(lambda x: x.dumps(), expected_list))])
+                    log(
+                        "-- current result: %s",
+                        ["".join(map(lambda x: x.dumps(), expected_list))],
+                    )
                 elif i[0].type == "endl":
                     log(">> Current is endl, don't do anything")
                 elif is_last:
@@ -1839,28 +2231,47 @@ class LineProxyList(ProxyList):
 
         log("End of loop")
 
-        log("-- result before end list procedure: %s", map(lambda x: x.dumps(), expected_list))
+        log(
+            "-- result before end list procedure: %s",
+            map(lambda x: x.dumps(), expected_list),
+        )
 
         if self.parent and self.parent.next_intuitive:
-            log("self.parent is followed by another node, last_indentation is indentation of self.parent")
+            log(
+                "self.parent is followed by another node, last_indentation is indentation of self.parent"
+            )
             last_indentation = self.parent.indentation
         else:
-            log("self.parent is NOT followed by another node, last indentation is empty string")
+            log(
+                "self.parent is NOT followed by another node, last indentation is empty string"
+            )
             last_indentation = ""
 
-        if not expected_list or not isinstance(expected_list[-1], (CodeBlockNode, redbaron.nodes.EndlNode)):
+        if not expected_list or not isinstance(
+            expected_list[-1], (CodeBlockNode, redbaron.nodes.EndlNode)
+        ):
             log(
-                ">> List is empty or last node is not a CodeBlockNode or EndlNode, append a separator to it and set identation to it")
+                ">> List is empty or last node is not a CodeBlockNode or EndlNode, append a separator to it and set identation to it"
+            )
             expected_list.append(generate_separator())
             expected_list[-1].indent = last_indentation
-            log("-- current result: %s", ["".join(map(lambda x: x.dumps(), expected_list))])
+            log(
+                "-- current result: %s",
+                ["".join(map(lambda x: x.dumps(), expected_list))],
+            )
         else:
             if isinstance(expected_list[-1], CodeBlockNode):
                 # In this case, the last \n is owned by the node
-                log("Last node is a CodeBlockNode, ensure that I still have the same last_indentation")
-                modify_last_indentation(get_real_last(expected_list[-1].value), last_indentation)
+                log(
+                    "Last node is a CodeBlockNode, ensure that I still have the same last_indentation"
+                )
+                modify_last_indentation(
+                    get_real_last(expected_list[-1].value), last_indentation
+                )
             else:
-                log("Last node is NOT CodeBlockNode, ensure that I still have the same last_indentation")
+                log(
+                    "Last node is NOT CodeBlockNode, ensure that I still have the same last_indentation"
+                )
                 expected_list[-1].indent = last_indentation
 
         log("-- final result: %s", map(lambda x: x.dumps(), expected_list))
@@ -1877,7 +2288,9 @@ class LineProxyList(ProxyList):
 
 class DecoratorsLineProxyList(LineProxyList):
     def _convert_input_to_node_object_list(self, value, parent, on_attribute):
-        return map(lambda x: self._convert_input_to_node_object(x, parent, on_attribute), value)
+        return map(
+            lambda x: self._convert_input_to_node_object(x, parent, on_attribute), value
+        )
 
     def _generate_expected_list(self):
         expected_list = super(DecoratorsLineProxyList, self)._generate_expected_list()
